@@ -12,7 +12,7 @@ public class Main extends Application{
         launch(args);
     }
 
-    private static GridPane grid;
+    private GridPane grid;
 
     /**
      * Initialise the game grid for Conway's Game Of Life

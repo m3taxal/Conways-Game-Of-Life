@@ -1,56 +1,64 @@
 
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Controller {
-    private final Rectangle[][] cellBodies;
+
+    Cell[][] cells;
 
     /**
-     * Finds out number of living neighbour cells
+     * <pre>
+     * Calculate the amount of living neighbour cells each cell has.
+     * For example,
      *
-     * @param cellBodies    all cells in "grid-like" form (e.g. [column][row])
-     * @return              neighbour cells in "grid-like" form
+     * XXC
+     * XCX
+     * XCC
+     *
+     * here the middle cell (C - living cell, X - dead cell) has 3 living neighbour cells.
+     * </pre>
+     *
+     * @return  amount of living neighbour cells
      */
-    private int[][] checkNeighbouringCells(Rectangle[][] cellBodies){
+    private int[][] checkNeighbouringCells(){
         int[][] neighbours = new int[99][99];
 
-        for(int column = 1; column < 99; column++){ //column
-            for(int row = 1; row < 99; row++){ //row
-                int livingNeighbours = 0; //number of living neighbours
+        for(int column = 1; column < 99; column++){
+            for(int row = 1; row < 99; row++){
+                int livingNeighbours = 0; //number of living neighbour cells
 
 
                 //all 8 positions of neighbour cells
-                if(isCellAlive(cellBodies[column][row-1])){ //TOP MIDDLE
+                if(cells[column][row-1].isCellAlive()){ //TOP MIDDLE
                     livingNeighbours += 1;
                 }
 
-                if(isCellAlive(cellBodies[column][row+1])){ //BOTTOM MIDDLE
+                if(cells[column][row+1].isCellAlive()){ //BOTTOM MIDDLE
                     livingNeighbours += 1;
                 }
 
-                if(isCellAlive(cellBodies[column-1][row-1])){ //TOP LEFT
+                if(cells[column-1][row-1].isCellAlive()){ //TOP LEFT
                     livingNeighbours += 1;
                 }
 
-                if(isCellAlive(cellBodies[column+1][row-1])){ //TOP RIGHT
+                if(cells[column+1][row-1].isCellAlive()){ //TOP RIGHT
                     livingNeighbours += 1;
                 }
 
-                if(isCellAlive(cellBodies[column-1][row])){ //MIDDLE LEFT
+                if(cells[column-1][row].isCellAlive()){ //MIDDLE LEFT
                     livingNeighbours += 1;
                 }
 
-                if(isCellAlive(cellBodies[column+1][row])){ //MIDDLE RIGHT
+                if(cells[column+1][row].isCellAlive()){ //MIDDLE RIGHT
                     livingNeighbours += 1;
                 }
 
-                if(isCellAlive(cellBodies[column-1][row+1])){ //BOTTOM LEFT
+                if(cells[column-1][row+1].isCellAlive()){ //BOTTOM LEFT
                     livingNeighbours += 1;
                 }
 
 
-                if(isCellAlive(cellBodies[column+1][row+1])){ //BOTTOM RIGHT
+                if(cells[column+1][row+1].isCellAlive()){ //BOTTOM RIGHT
                     livingNeighbours += 1;
                 }
 
@@ -66,138 +74,65 @@ public class Controller {
      * Edges of the game grid will stay as dead cells to function as borders.
      */
     public void evolve(){
-        int[][] neighbours = checkNeighbouringCells(cellBodies);
+        int[][] neighbours = checkNeighbouringCells();
 
         for(int i = 0; i < 99; i++){
             for(int j = 0; j < 99; j++){
                 //implement all the Conway's Game Of Life rules
 
-                if(cellBodies[i][j].getFill().equals(Color.RED)){ //For a space that is populated:
+                if(cells[i][j].isCellAlive()){ //For a space that is populated:
 
                     //Each cell with one or no neighbor's dies, as if by solitude.
                     if(neighbours[i][j] < 2){
-                        cellBodies[i][j].setFill(Color.TRANSPARENT);
+                        cells[i][j].killCell();
                     }
 
                     //Each cell with two or three neighbors survives.
                     if(neighbours[i][j] == 2 || neighbours[i][j] == 3){
-                        cellBodies[i][j].setFill(Color.RED);
+                        cells[i][j].reviveCell();
                     }
 
                     //Each cell with four or more neighbors dies, as if by overpopulation.
                     if(neighbours[i][j] > 3){
-                        cellBodies[i][j].setFill(Color.TRANSPARENT);
+                        cells[i][j].killCell();
                     }
                 }
 
                 //For a space that is empty or unpopulated:
                 //Each cell with three neighbors becomes populated.
-                if(cellBodies[i][j].getFill().equals(Color.TRANSPARENT) && neighbours[i][j] == 3){
-                    cellBodies[i][j].setFill(Color.RED);
+                if(!cells[i][j].isCellAlive() && neighbours[i][j] == 3){
+                    cells[i][j].reviveCell();
                 }
             }
         }
     }
 
-    /**
-     * Generate a random number in a specified range
-     * @param min   minimum of the random number
-     * @param max   maximum of the random number
-     * @return      the random number as an Integer
-     */
-    public int getRandomNumber(int min, int max){
-        return (int) ((Math.random() * (max-min))+min);
-    }
-
-    /**
-     * Revive cell
-     *
-     * @param cell  Cell to be revived
-     */
-    private void reviveCell(Rectangle cell){
-        cell.setFill(Color.RED);
-    }
-
-    /**
-     * Kill cell
-     *
-     * @param cell cell that is to be killed
-     */
-    private void killCell(Rectangle cell){
-        cell.setFill(Color.TRANSPARENT);
-    }
-
-    /**
-     * Check if cell is dead
-     *
-     * @param cell  cell to be checked
-     * @return      true if cell is dead, false if cell is alive
-     */
-    private boolean isCellDead(Rectangle cell){
-        return cell.getFill().equals(Color.TRANSPARENT);
-    }
-
-    /**
-     * Check if cell is alive
-     *
-     * @param cell  cell to be checked
-     * @return      true if cell is alive, false if cell is dead
-     */
-    private boolean isCellAlive(Rectangle cell){
-        return cell.getFill().equals(Color.RED);
-    }
-
-    /**
-     * Initialise cells inside game grid
-     *
-     * @param gridPane  the game grid
-     */
     public Controller(GridPane gridPane){
-        cellBodies = new Rectangle[100][100]; //column, row
+        this.cells = new Cell[100][100];
 
-        for(int currentColumn = 0; currentColumn < cellBodies.length; currentColumn++){
-            for(int currentRow = 0; currentRow < 100; currentRow++){
-                cellBodies[currentColumn][currentRow] = new Rectangle(); //add rectangle to every cell of the grid to control bg-color
+        for(int column = 0; column < 100; column++){
+            for(int row = 0; row < 100; row++){
+                //leave game edges as dead cells, so they function as borders
+                if(column == 0 || column == 99 || row == 0 || row == 99){
+                    cells[column][row] = new Cell(new Rectangle(8, 8), Cell.cellState.DEAD, 0);
+                }
+                else {
+                    cells[column][row] = new Cell(new Rectangle(8, 8), Cell.cellState.DEAD, 10); //currently, 10% chance of every cell being alive at the start
+                }
 
-                Rectangle temp = cellBodies[currentColumn][currentRow];
-                temp.setHeight(8);
-                temp.setWidth(8);
-                killCell(temp); //set all cells to "DEAD" (TRANSPARENT == "DEAD" cell)
-
-                //give player ability to kill and revive cells inside the game
-                cellBodies[currentColumn][currentRow].setOnMouseClicked(mouseEvent -> {
-                    if(isCellDead(temp)){
-                        reviveCell(temp);
+                //give player the ability to revive cells by clicking
+                int finalRow = row;
+                int finalColumn = column;
+                cells[column][row].getCellBody().setOnMouseClicked(mouseEvent -> {
+                    if(cells[finalColumn][finalRow].isCellAlive()){
+                        cells[finalColumn][finalRow].killCell();
                     }
                     else {
-                        killCell(temp);
+                        cells[finalColumn][finalRow].reviveCell();
                     }
                 });
 
-                gridPane.add(temp, currentColumn, currentRow);
-            }
-        }
-
-        //reviveRandomCells(20);
-    }
-
-    /**
-     * Generate a random amount of living cells
-     *
-     * @param chance    chance of a single cell becoming alive
-     */
-    private void reviveRandomCells(int chance){
-        //every cell has a random chance to be alive at initialisation of the game (leave out edges of game grid)
-        for(int i = 1; i < 99; i++){
-            for(int j = 1; j < 99; j++){
-                int ranInt = getRandomNumber(1, 100);
-
-                if(ranInt <= chance){ //currently, 20% chance for every cell to be alive at the start
-                    cellBodies[i][j].setFill(Color.RED);
-                }
-                else {
-                    cellBodies[i][j].setFill(Color.TRANSPARENT);
-                }
+                gridPane.add(cells[column][row].getCellBody(), column, row);
             }
         }
     }
