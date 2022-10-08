@@ -7,7 +7,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.stage.Stage;
 
-public class Main extends Application{
+public class runGame extends Application{
     public static void main(String[] args) {
         launch(args);
     }
